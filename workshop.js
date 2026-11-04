@@ -60,7 +60,7 @@ function workshopPanels(){
       form.elements.type.value='ct';form.elements.title.value='Contrôle technique';
       form.elements.date.focus();
     };
-    app.insertAdjacentHTML('beforeend',faultPanel(v));
+    app.insertAdjacentHTML('beforeend',partsPanel(v)+faultPanel(v));
   }
   if(page==='detail' && ['logs','expenses'].includes(tab)){
     const entries=current()[tab];
@@ -131,6 +131,28 @@ function finishService(vehicle,id){
     repeat.onclick=()=>{if(!form.elements.km.value){form.elements.km.focus();return}form.elements.nextKm.value=Number(form.elements.km.value)+interval};
   }
 }
+function partsPanel(v){
+  const rows=v.parts.map(p=>'<article class="row"><div><strong>'+esc(p.name)+'</strong><p>OEM : '+esc(p.oem||'à renseigner')+' · '+esc(p.origin)+' · '+(p.price===null?'Prix inconnu':euro(p.price))+'</p><span class="tag">'+esc(p.state)+'</span></div><button data-edit-part="'+esc(p.id)+'">Modifier</button></article>').join('');
+  return '<section class="panel"><div class="sectionhead"><h2>Pièces du véhicule</h2><button data-add-part>Ajouter une pièce</button></div>'+(rows||'<p>Aucune pièce consignée.</p>')+'</section>';
+}
+function partDialog(vehicle,id){
+  const part=vehicle.parts.find(p=>p.id===id);
+  const options=(items,value)=>items.map(x=>'<option '+(x===value?'selected':'')+'>'+esc(x)+'</option>').join('');
+  const fields='<label>Nom de la pièce<input name="name" required maxlength="200" value="'+esc(part?.name)+'"></label>'+
+    '<label>Référence OEM<input name="oem" maxlength="120" value="'+esc(part?.oem)+'"></label>'+
+    '<label>Provenance<select name="origin">'+options(partOrigins,part?.origin)+'</select></label>'+
+    numberField('price','Prix (€) · facultatif',part?.price??'','0.01')+
+    '<label>État<select name="state">'+options(partStates,part?.state)+'</select></label>';
+  workflowDialog(part?'Modifier la pièce':'Ajouter une pièce',fields,(next,d)=>{
+    const car=next.vehicles.find(v=>v.id===vehicle.id);
+    if(!car)throw Error('Dossier véhicule introuvable.');
+    const values={name:d.name.trim(),oem:d.oem.trim(),price:d.price===''?null:Number(d.price),origin:d.origin,state:d.state};
+    if(!id){car.parts.push({id:uid(),...values});return}
+    const row=car.parts.find(p=>p.id===id);
+    if(!row)throw Error('Pièce introuvable.');
+    Object.assign(row,values);
+  });
+}
 function faultPanel(v){
   const rows=v.faults.map(f=>'<article class="panel"><strong>'+esc(f.title)+'</strong> <span class="tag">'+(f.closed?'Résolue':'En cours')+'</span>'+
     f.events.map(e=>'<p><strong>'+displayDay(e.date)+' · '+esc(e.kind)+'</strong><br>'+esc(e.text)+'</p>').join('')+
@@ -176,6 +198,7 @@ function downloadReminder(v,m){
 document.addEventListener('click',event=>{
   const b=event.target.closest('button');
   if(!b)return;
+  if(b.hasAttribute('data-add-part')||b.dataset.editPart)partDialog(current(),b.dataset.editPart);
   if(b.dataset.agenda){const v=db.vehicles.find(x=>x.id===b.dataset.vehicle);downloadReminder(v,v.maintenance.find(m=>m.id===b.dataset.agenda))}
   if(b.dataset.finish)finishService(b.dataset.vehicle,b.dataset.finish);
   if(b.hasAttribute('data-new-fault'))faultDialog(selected,null,false);

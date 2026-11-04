@@ -78,9 +78,26 @@ async function run(){
     await p.reload();await click('[data-open=e39]');car=(await records())[0];
     assert.equal(car.faults[0].closed,true);assert.equal(car.faults[0].events.length,3);
     assert.match(await p.locator('#app').innerText(),/Batterie remplacée/);assert.equal(await p.locator('[data-resolve]').count(),0);
+    // Swap fictif : consigner les trois provenances sur l'E91 uniquement.
+    await click('[data-page=vehicles]');await click('[data-open=e91]');
+    for(const [name,oem,origin,price,state] of [
+      ['Faisceau moteur','001-SWAP','Donneur','45.90','Reçue'],
+      ['Support moteur','','Châssis','0','Montée'],
+      ['Joint neuf','TEST-09','Achat','','À commander']
+    ]){
+      await click('[data-add-part]');
+      for(const [key,value] of Object.entries({name,oem,price}))await p.fill('#workflow [name='+key+']',value);
+      await p.selectOption('#workflow [name=origin]',origin);await p.selectOption('#workflow [name=state]',state);await finish();
+    }
+    await click('[data-edit-part]');await p.selectOption('#workflow [name=state]','Montée');await finish();
+    await p.reload();await click('[data-open=e91]');
+    const parts=(await records()).find(v=>v.id==='e91').parts;
+    assert.deepEqual(parts.map(p=>p.price),[45.9,0,null]);assert.equal(parts[0].oem,'001-SWAP');
+    assert.equal(parts[0].state,'Montée');assert.equal((await records())[0].parts.length,0);
+    assert.match(await p.locator('#app').innerText(),/001-SWAP/);
     await click('[data-page=settings]');const before=await records();
     async function upload(data){await p.locator('#import').setInputFiles({name:'atelier.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))})}
-    for(const patch of [{plate:12345},{id:'x" data-audit="yes'}]){
+    for(const patch of [{plate:12345},{id:'x" data-audit="yes'},{parts:[{...parts[0],origin:'inconnue'}]}]){
       const count=dialogs.length;await upload({vehicles:[{...before[0],...patch}]});
       await p.waitForFunction(()=>document.querySelector('#import').value==='');
       assert.ok(dialogs.length>count);assert.deepEqual(await records(),before);

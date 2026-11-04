@@ -10,7 +10,9 @@ Fonctions : véhicules, diagnostics, tâches, dépenses, VIN châssis et donneur
 
 Les fichiers ne contiennent aucune clé API ni sauvegarde utilisateur. Les fiches E39/E91 de départ sont des exemples préremplis.
 
-## Utiliser la version 0.6
+## Utiliser la version 0.7
+
+Dans la fiche d’un véhicule, « Pièces du véhicule » suit chaque pièce d’un swap. Saisis son nom, sa référence OEM si elle est connue, sa provenance (châssis, donneur ou achat), son prix et son état. Utilise « Modifier » à réception ou après montage. Un prix vide reste inconnu et un prix de 0 € indique une pièce gratuite. Le prix de la pièce est conservé dans sa fiche ; pour comptabiliser un paiement, utilise le budget. Les sauvegardes incluent les pièces de chaque véhicule.
 
 Depuis la fiche véhicule, relève le compteur puis ajoute un entretien ou un contrôle technique. Saisis la date figurant sur ton contrôle ou l’échéance de ton entretien. Un préavis en jours ou en kilomètres fait apparaître le rappel sur l’accueil. Le seuil atteint devient « À réaliser ». Les rappels sont consultables dans l’application.
 

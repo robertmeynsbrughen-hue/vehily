@@ -1,3 +1,5 @@
+const partOrigins=['Châssis','Donneur','Achat'];
+const partStates=['À commander','Commandée','Reçue','Montée'];
 // Validate both legacy exports and current dossiers before replacing any data.
 function readWorkshop(data) {
   const fail = field => { throw new Error(field); };
@@ -18,8 +20,8 @@ function readWorkshop(data) {
     check(typeof v.name === 'string' && v.name.trim(), 'nom');
     for (const k of 'subtitle plate owner status notes vin donorVin production factoryEngine paintCode paintName upholstery identitySource options donorModel installedEngine swapNotes'.split(' '))
       check(v[k] == null || typeof v[k] === 'string', k);
-    for (const k of ['tasks','logs','expenses','maintenance','faults']) {
-      if ((k === 'maintenance'||k === 'faults') && v[k] == null) v[k] = [];
+    for (const k of ['tasks','logs','expenses','maintenance','faults','parts']) {
+      if (['maintenance','faults','parts'].includes(k) && v[k] == null) v[k] = [];
       check(Array.isArray(v[k]), k);
       identifiers(v[k], v.id + ' · ' + k, k === 'logs' || k === 'expenses');
     }
@@ -27,6 +29,12 @@ function readWorkshop(data) {
     for (const l of v.logs) check(typeof l.title === 'string' && typeof l.body === 'string' && [l.kind,l.date].every(x=>x == null || typeof x === 'string'), 'journal');
     for (const e of v.expenses) check(typeof e.title === 'string' && Number.isFinite(e.amount) && e.amount >= 0 && (e.date == null || typeof e.date === 'string'), 'dépense');
     check(v.mileage == null || validKm(v.mileage), 'kilométrage');
+    for(const part of v.parts){
+      check(typeof part.name==='string' && part.name.trim(), 'nom de pièce');
+      check(typeof part.oem==='string', 'référence OEM');
+      check(partOrigins.includes(part.origin) && partStates.includes(part.state), 'provenance ou état de pièce');
+      check(part.price===null || (Number.isFinite(part.price) && part.price>=0), 'prix de pièce');
+    }
     for (const m of v.maintenance) {
       check([undefined,'service','ct'].includes(m.type) && (m.type!=='ct'||validDate(m.date)), 'date du contrôle technique');
       check([m.leadDays,m.leadKm].every(n=>n==null||validKm(n)), 'préavis');
