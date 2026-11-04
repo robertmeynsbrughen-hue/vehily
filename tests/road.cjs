@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
 const root = path.resolve(__dirname, '..');
-const files = new Set(['index.html','manifest.webmanifest','app.js','storage.js','workshop.js',...fs.readdirSync(path.join(root,'assets')).map(x=>'assets/'+x)]);
+const files = new Set(['index.html','manifest.webmanifest','app.js','storage.js','workshop.js','sync.js',...fs.readdirSync(path.join(root,'assets')).map(x=>'assets/'+x)]);
 const server = http.createServer((req,res)=>{
   const file=req.url==='/'?'index.html':req.url.slice(1);
   if(!files.has(file)){res.writeHead(404);return res.end()}

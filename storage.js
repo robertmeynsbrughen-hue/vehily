@@ -85,6 +85,7 @@ async function commitWorkshop(change, { restore = false } = {}) {
       const serialized = JSON.stringify(readWorkshop(next));
       localStorage.setItem(KEY, serialized);
       db = next; snapshot = serialized; loadError = null; render();
+      if (typeof vehilySync !== 'undefined') vehilySync.changed();
       return true;
     });
   } catch (err) {

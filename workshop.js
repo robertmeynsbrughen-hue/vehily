@@ -41,7 +41,7 @@ function workshopPanels(){
   if(page==='dashboard'){
     let date;try{date=localStorage.getItem(exportKey)}catch{}
     const notice=document.createElement('section');notice.className='notice';
-    notice.innerHTML='Stocké sur cet appareil · Dernier export lancé : '+esc(date||'aucun')+' <button data-page="settings">Sauvegardes</button>';
+    notice.innerHTML='<span data-sync-label>'+(typeof vehilySync!=='undefined'?vehilySync.label():'Stocké sur cet appareil')+'</span> · Dernier export lancé : '+esc(date||'aucun')+' <button data-page="settings">Sauvegardes</button>';
     if(loadError)notice.insertAdjacentText('afterbegin',loadError+' · Exporte les données brutes puis restaure une sauvegarde valide. ');
     app.prepend(notice);
     const covered=db.vehicles.filter(v=>v.maintenance?.length);
@@ -49,6 +49,7 @@ function workshopPanels(){
     if(alerts.length)notice.insertAdjacentHTML('beforebegin','<section class="notice"><h2>Rappels de l’atelier</h2>'+alerts.join('')+'</section>');
     if(covered.length)notice.insertAdjacentHTML('afterend','<section class="panel"><h2>Entretiens à suivre</h2>'+covered.map(v=>'<h3>'+esc(v.name)+'</h3>'+v.maintenance.map(m=>serviceRow(v,m)).join('')).join('')+'</section>');
   }
+  if(typeof vehilySync!=='undefined')vehilySync.decorate(page);
   if(page==='detail' && tab==='overview'){
     const v=current();app.insertAdjacentHTML('beforeend','<section class="panel"><h2>Entretien</h2><p>Compteur : '+(v.mileage==null?'à renseigner':v.mileage+' km')+'</p><div class="actions"><button data-action="mileage">Relever le kilométrage</button><button data-action="service">Ajouter un entretien</button></div>'+(v.maintenance||[]).map(m=>serviceRow(v,m)).join('')+'</section>');
     const ct=document.createElement('button');

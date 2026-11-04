@@ -4,11 +4,19 @@ Carnet de suivi de véhicules par OCTANE CODE.
 
 Application statique : ouvrir index.html via un serveur HTTP ou publier la racine sur GitHub Pages. Aucun compte ChatGPT nécessaire sur GitHub Pages.
 
-Les dossiers sont stockés dans le navigateur (localStorage), sans synchronisation. Exporter une sauvegarde JSON avant de changer de domaine ou de navigateur : les données du site précédent ne migrent pas automatiquement. Importer ensuite cette sauvegarde dans Véhily.
+Les dossiers sont stockés dans le navigateur (localStorage). Avec un compte, ils sont aussi synchronisés automatiquement entre tes appareils (voir version 0.9). Sans compte, exporter une sauvegarde JSON avant de changer de domaine ou de navigateur : les données du site précédent ne migrent pas automatiquement.
 
 Fonctions : véhicules, diagnostics, tâches, dépenses, VIN châssis et donneur, accès RealOEM, comptes rendus imprimables. La recherche automatique par plaque n’est pas connectée.
 
 Les fichiers ne contiennent aucune clé API ni sauvegarde utilisateur. Les fiches E39/E91 de départ sont des exemples préremplis.
+
+## Synchronisation (version 0.9)
+
+Dans Sauvegardes, « Synchronisation automatique » : crée un compte (e-mail et mot de passe, 6 caractères minimum) ou connecte-toi. Chaque modification est envoyée environ 1,5 seconde après l'enregistrement ; les autres appareils la récupèrent à l'ouverture, au retour sur l'onglet et toutes les minutes. Hors connexion, les modifications attendent sur l'appareil et partent au retour du réseau. L'accueil indique « Synchronisé à … » ou l'envoi en attente.
+
+Si les dossiers ont changé sur deux appareils en même temps, ou à la première connexion d'un appareil qui a déjà des dossiers, Véhily demande quelle version garder et télécharge l'autre en sauvegarde JSON. Se déconnecter laisse les dossiers sur l'appareil.
+
+Stockage : projet Supabase « Rivio Backup », table `public.vehily` (une ligne par compte, accès limité à son propriétaire, contrôle de version contre les écrasements). Les comptes sont ceux de ce projet Supabase. Pour que le lien de confirmation e-mail ramène sur Véhily, ajouter l'adresse du site dans Supabase › Authentication › URL Configuration › Redirect URLs.
 
 ## Utiliser la version 0.8
 
@@ -28,7 +36,7 @@ Les dépenses et le journal permettent de corriger les montants, textes et dates
 
 Dans Sauvegardes, l’import indique combien de dossiers seront remplacés et permet d’exporter les dossiers actuels avant de confirmer. La date sur l’accueil correspond au dernier export lancé sur cet appareil. Utilise HTTPS ou localhost pour permettre le verrouillage des écritures entre onglets.
 
-Le scénario de régression utilise uniquement des données fictives. Avec Playwright et Chromium disponibles, lancer `node tests/workshop.cjs` puis `node tests/road.cjs`. Pour utiliser Chrome déjà installé, définir `CHROME_CHANNEL=chrome`.
+Le scénario de régression utilise uniquement des données fictives. Avec Playwright et Chromium disponibles, lancer `node tests/workshop.cjs`, `node tests/road.cjs` puis `node tests/sync.cjs` (faux serveur Supabase local, deux appareils fictifs). Pour utiliser Chrome déjà installé, définir `CHROME_CHANNEL=chrome`.
 
 ## Photos
 

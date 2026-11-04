@@ -52,3 +52,4 @@ if(e.target.id==='import'&&e.target.files[0]){
 }});document.querySelector('#date').textContent=new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});render();
 
 if(loadError)alert(loadError);
+vehilySync.start();
