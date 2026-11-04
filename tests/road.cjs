@@ -61,6 +61,12 @@ async function run(){
     // 5. Fiche véhicule et rechargement.
     await p.reload();await p.click('#cards [data-open="fict-c"] h2');
     assert.match(await p.locator('#app .road').innerText(),/Immobilisée[\s\S]*CT fictif refusé/);
+    const [report]=await Promise.all([p.waitForEvent('popup'),p.click('[data-action=print]')]);
+    assert.match(await report.locator('body').innerText(),/État de route : immobilisée · CT fictif refusé[\s\S]*Prochaine action : Remplacer la rotule fictive[\s\S]*Pannes et diagnostic[\s\S]*Pièces du véhicule/);
+    await report.close();
+    // Un texte long sans espace ne doit pas élargir la page sur mobile.
+    await p.evaluate(()=>{document.querySelector('#app h1').textContent='X'.repeat(120)});
+    assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth));
 
     // 6. Un import avec un état invalide est refusé sans rien modifier.
     await p.click('[data-page=settings]');const before=await records();

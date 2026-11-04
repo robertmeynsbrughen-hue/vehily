@@ -255,3 +255,16 @@ async function removeEntry(id){
   app.querySelector('.panel').prepend(undo);
   undo.onclick=()=>commitWorkshop(next=>{const rows=next.vehicles.find(v=>v.id===vehicle)[collection];if(!rows.some(x=>x.id===id))rows.splice(index,0,entry)});
 }
+// Compte rendu imprimable : état de route, entretiens, pannes et pièces.
+function reportRoad(v){
+  const r=v.road, step=nextStep(v);
+  const state=!r?'non renseigné':r.state==='roulante'?'roulante':'immobilisée · '+esc(r.reason);
+  return state+(r?.since?' (depuis le '+displayDay(r.since)+')':'')+'<br>Prochaine action : '+(step?esc(step.text):'à préciser');
+}
+function reportSections(v){
+  const list=(items,empty)=>items.length?'<ul>'+items.join('')+'</ul>':'<p>'+empty+'</p>';
+  const maintenance=list((v.maintenance||[]).map(m=>'<li>'+(m.type==='ct'?'Contrôle technique · ':'')+esc(m.title)+' · '+serviceStatus(v,m)+(m.date?' · '+displayDay(m.date):'')+(m.nextKm!=null?' · '+m.nextKm+' km':'')+'</li>'),'Aucune échéance.');
+  const faults=list(v.faults.map(f=>'<li><strong>'+esc(f.title)+'</strong> · '+(f.closed?'résolue':'en cours · prochaine action : '+esc(f.next||'à préciser'))+'<br><small>'+f.events.map(e=>displayDay(e.date)+' · '+esc(e.kind)+' : '+esc(e.text)).join('<br>')+'</small></li>'),'Aucune panne consignée.');
+  const parts=list(v.parts.map(p=>'<li>'+esc(p.name)+' · OEM '+esc(p.oem||'à renseigner')+' · '+esc(p.origin)+' · '+esc(p.state)+' · '+(p.price===null?'prix inconnu':euro(p.price))+'</li>'),'Aucune pièce consignée.');
+  return '<h2>Entretiens et contrôles</h2>'+maintenance+'<h2>Pannes et diagnostic</h2>'+faults+'<h2>Pièces du véhicule</h2>'+parts;
+}
