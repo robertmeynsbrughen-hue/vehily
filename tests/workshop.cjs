@@ -49,6 +49,35 @@ async function run(){
     await action('service');await field('title','Vidange');await field('lastKm','7000');await field('nextKm','12000');await field('date','2099-01-01');await submit();
     await click('[data-page=dashboard]');assert.match(await p.locator('#app section.panel').innerText(),/Vidange[\s\S]*À réaliser/);
     await click('[data-service]');await field('nextKm','15000');await submit();assert.match(await p.locator('#app').innerText(),/Prévu/);
+    // Warn before the mileage limit, close against an existing invoice and schedule the next service.
+    await click('[data-service]');await field('leadKm','3500');await submit();
+    await click('[data-page=dashboard]');assert.match(await p.locator('#app').innerText(),/Rappels de l’atelier/);
+    const invoice=(await records())[0].expenses[0];
+    await click('[data-finish]');await p.fill('#workflow [name=notes]','Huile et filtre');
+    await p.selectOption('#workflow [name=invoice]',invoice.id);await p.fill('#workflow [name=nextKm]','22000');
+    const finish=async()=>{await click('#workflow [type=submit]');await p.waitForSelector('#modal:not([open])',{state:'attached'})};
+    await finish();let car=(await records())[0];
+    assert.equal(car.expenses.length,1);assert.equal(car.logs[0].expenseId,invoice.id);
+    assert.match(car.logs[0].body,/Huile et filtre/);assert.equal(car.maintenance[0].nextKm,22000);
+    await click('[data-finish]');await p.fill('#workflow [name=cost]','20.50');await finish();
+    car=(await records())[0];assert.equal(car.expenses.length,2);assert.equal(car.maintenance.length,0);
+    await click('[data-open=e39]');await p.getByRole('button',{name:'Prévoir un contrôle technique'}).click();assert.equal(await p.inputValue('#entry [name=type]'),'ct');
+    await field('title','CT fictif');const soon=await p.evaluate(()=>{const d=new Date();d.setDate(d.getDate()+5);return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')});
+    await field('date',soon);await field('leadDays','4');await submit();await click('[data-page=dashboard]');
+    assert.ok(!(await p.locator('#app').innerText()).includes('Rappels de l’atelier'));
+    await click('[data-service]');await field('leadDays','5');await submit();await click('[data-page=dashboard]');
+    assert.match(await p.locator('#app .notice').first().innerText(),/CT fictif · À prévoir/);
+    const calendar=await p.evaluate(()=>{const v=db.vehicles[0];return calendarReminder(v,v.maintenance[0])});
+    assert.ok(calendar.includes('TRIGGER:-P5D'));assert.ok(calendar.includes('DTSTART;VALUE=DATE:'+soon.replaceAll('-','')));
+    const reminder=p.waitForEvent('download');await click('[data-agenda]');assert.equal((await reminder).suggestedFilename(),'vehily-rappel.ics');
+    await click('[data-open=e39]');await click('[data-new-fault]');await p.fill('#workflow [name=title]','Démarrage');
+    await p.fill('#workflow [name=text]','À froid');await p.fill('#workflow [name=next]','Lire le calculateur');await finish();
+    await click('[data-fault-note]');await p.selectOption('#workflow [name=kind]','Mesure');
+    await p.fill('#workflow [name=text]','Tension mesurée');await p.fill('#workflow [name=next]','Tester la batterie');await finish();
+    await click('[data-resolve]');await p.fill('#workflow [name=text]','Batterie remplacée, essai concluant');await finish();
+    await p.reload();await click('[data-open=e39]');car=(await records())[0];
+    assert.equal(car.faults[0].closed,true);assert.equal(car.faults[0].events.length,3);
+    assert.match(await p.locator('#app').innerText(),/Batterie remplacée/);assert.equal(await p.locator('[data-resolve]').count(),0);
     await click('[data-page=settings]');const before=await records();
     async function upload(data){await p.locator('#import').setInputFiles({name:'atelier.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))})}
     for(const patch of [{plate:12345},{id:'x" data-audit="yes'}]){

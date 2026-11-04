@@ -27,7 +27,7 @@ const saved=await commitWorkshop(next=>{
   if(kind==='task')vehicle.tasks.push({...d,id:uid(),done:false});
   if(collection){
     if(kind==='expense')d.amount=Number(d.amount);
-    if(kind==='service')for(const k of ['lastKm','nextKm'])d[k]=d[k]===''?null:Number(d[k]);
+    if(kind==='service')for(const k of ['lastKm','nextKm','leadDays','leadKm'])d[k]=d[k]===''?null:Number(d[k]);
     if(kind==='log'||kind==='expense')d.date=d.date.split('-').reverse().join('/');
     if(entryId){const row=vehicle[collection].find(x=>x.id===entryId);if(!row)throw Error('Entrée introuvable');Object.assign(row,d)}
     else if(kind==='log')vehicle.logs.unshift({...d,id:uid()});

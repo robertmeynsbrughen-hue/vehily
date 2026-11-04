@@ -18,8 +18,8 @@ function readWorkshop(data) {
     check(typeof v.name === 'string' && v.name.trim(), 'nom');
     for (const k of 'subtitle plate owner status notes vin donorVin production factoryEngine paintCode paintName upholstery identitySource options donorModel installedEngine swapNotes'.split(' '))
       check(v[k] == null || typeof v[k] === 'string', k);
-    for (const k of ['tasks','logs','expenses','maintenance']) {
-      if (k === 'maintenance' && v[k] == null) v[k] = [];
+    for (const k of ['tasks','logs','expenses','maintenance','faults']) {
+      if ((k === 'maintenance'||k === 'faults') && v[k] == null) v[k] = [];
       check(Array.isArray(v[k]), k);
       identifiers(v[k], v.id + ' · ' + k, k === 'logs' || k === 'expenses');
     }
@@ -27,6 +27,14 @@ function readWorkshop(data) {
     for (const l of v.logs) check(typeof l.title === 'string' && typeof l.body === 'string' && [l.kind,l.date].every(x=>x == null || typeof x === 'string'), 'journal');
     for (const e of v.expenses) check(typeof e.title === 'string' && Number.isFinite(e.amount) && e.amount >= 0 && (e.date == null || typeof e.date === 'string'), 'dépense');
     check(v.mileage == null || validKm(v.mileage), 'kilométrage');
+    for (const m of v.maintenance) {
+      check([undefined,'service','ct'].includes(m.type) && (m.type!=='ct'||validDate(m.date)), 'date du contrôle technique');
+      check([m.leadDays,m.leadKm].every(n=>n==null||validKm(n)), 'préavis');
+    }
+    for (const f of v.faults) {
+      check(typeof f.title==='string' && f.title.trim() && typeof f.closed==='boolean' && typeof f.next==='string' && Array.isArray(f.events) && f.events.length, 'dossier de panne');
+      for(const e of f.events)check(e && validDate(e.date) && typeof e.kind==='string' && typeof e.text==='string','suivi de panne');
+    }
     for (const m of v.maintenance) check(typeof m.title === 'string' && m.title.trim() && (m.lastKm == null || validKm(m.lastKm)) && (m.nextKm == null || validKm(m.nextKm)) && (!m.date || validDate(m.date)) && (m.nextKm != null || validDate(m.date)), 'échéance entretien');
   }
   return {vehicles:data.vehicles};

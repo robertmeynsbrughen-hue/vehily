@@ -10,9 +10,15 @@ Fonctions : véhicules, diagnostics, tâches, dépenses, VIN châssis et donneur
 
 Les fichiers ne contiennent aucune clé API ni sauvegarde utilisateur. Les fiches E39/E91 de départ sont des exemples préremplis.
 
-## Utiliser la version 0.5
+## Utiliser la version 0.6
 
-Depuis la fiche véhicule, relève le compteur puis ajoute un entretien. Renseigne une échéance en kilomètres, une date, ou les deux. L’accueil affiche « À réaliser » dès que le compteur saisi ou la date du jour atteint l’une des limites. Après intervention, modifie la ligne pour indiquer la prochaine échéance.
+Depuis la fiche véhicule, relève le compteur puis ajoute un entretien ou un contrôle technique. Saisis la date figurant sur ton contrôle ou l’échéance de ton entretien. Un préavis en jours ou en kilomètres fait apparaître le rappel sur l’accueil. Le seuil atteint devient « À réaliser ». Les rappels sont consultables dans l’application.
+
+Pour recevoir un rappel daté en dehors de Véhily, « Ajouter à mon agenda » télécharge un événement à importer dans ton calendrier. Le fichier inclut le préavis en jours ; la notification dépend des réglages de l’agenda. Après un changement d’échéance, actualise aussi l’événement dans ton agenda. Les rappels kilométriques utilisent le dernier relevé du compteur dans Véhily.
+
+« Marquer comme fait » consigne les travaux, la date et le compteur dans le journal. Rattache une dépense déjà saisie ou indique un montant pour créer une dépense. Laisse les prochaines échéances vides pour terminer, ou renseigne une nouvelle date ou un kilométrage pour reconduire l’entretien.
+
+Dans « Pannes et diagnostic », ouvre un dossier avec le symptôme et la prochaine action. Consigne les codes défaut, les mesures et les essais, puis utilise « Résoudre » pour conserver la réparation et le résultat de vérification dans l’historique.
 
 Les dépenses et le journal permettent de corriger les montants, textes et dates. Après suppression, « Annuler la suppression » reste proposé sur la vue courante.
 
