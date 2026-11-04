@@ -1,0 +1,1 @@
+{"id": "./", "name": "Véhily — Suivi de véhicules", "short_name": "Véhily", "description": "Votre carnet de suivi automobile par OCTANE CODE", "start_url": "./", "scope": "./", "display": "standalone", "background_color": "#070b12", "theme_color": "#070b12", "lang": "fr", "icons": [{"src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}]}
