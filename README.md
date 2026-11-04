@@ -10,7 +10,9 @@ Fonctions : véhicules, diagnostics, tâches, dépenses, VIN châssis et donneur
 
 Les fichiers ne contiennent aucune clé API ni sauvegarde utilisateur. Les fiches E39/E91 de départ sont des exemples préremplis.
 
-## Utiliser la version 0.7
+## Utiliser la version 0.8
+
+Sur l’accueil, chaque carte indique si la voiture est « Roulante » ou « Immobilisée », depuis quand, le motif de l’immobilisation et la prochaine action. « Renseigner l’état » ou « Changer l’état » ouvre la saisie : le motif est obligatoire pour une immobilisation. Laisse la prochaine action vide pour reprendre automatiquement la panne en cours, puis l’entretien dû, puis la première tâche. Un dossier plus ancien affiche « État de route à renseigner ». Les sauvegardes incluent cet état.
 
 Dans la fiche d’un véhicule, « Pièces du véhicule » suit chaque pièce d’un swap. Saisis son nom, sa référence OEM si elle est connue, sa provenance (châssis, donneur ou achat), son prix et son état. Utilise « Modifier » à réception ou après montage. Un prix vide reste inconnu et un prix de 0 € indique une pièce gratuite. Le prix de la pièce est conservé dans sa fiche ; pour comptabiliser un paiement, utilise le budget. Les sauvegardes incluent les pièces de chaque véhicule.
 
@@ -26,7 +28,7 @@ Les dépenses et le journal permettent de corriger les montants, textes et dates
 
 Dans Sauvegardes, l’import indique combien de dossiers seront remplacés et permet d’exporter les dossiers actuels avant de confirmer. La date sur l’accueil correspond au dernier export lancé sur cet appareil. Utilise HTTPS ou localhost pour permettre le verrouillage des écritures entre onglets.
 
-Le scénario de régression utilise uniquement des données fictives. Avec Playwright et Chromium disponibles, lancer `node tests/workshop.cjs`. Pour utiliser Chrome déjà installé, définir `CHROME_CHANNEL=chrome`.
+Le scénario de régression utilise uniquement des données fictives. Avec Playwright et Chromium disponibles, lancer `node tests/workshop.cjs` puis `node tests/road.cjs`. Pour utiliser Chrome déjà installé, définir `CHROME_CHANNEL=chrome`.
 
 ## Photos
 

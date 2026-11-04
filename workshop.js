@@ -175,6 +175,46 @@ function faultDialog(vehicle,id,resolve){
     fault.closed=resolve;fault.next=resolve?'':d.next.trim();
   });
 }
+// État de route : saisi par l'utilisateur ; la prochaine action reprend sinon le dossier.
+function nextStep(v){
+  if(v.road?.next)return {text:v.road.next,from:''};
+  const fault=v.faults.find(f=>!f.closed && f.next);
+  if(fault)return {text:fault.next,from:'Panne · '+fault.title};
+  const due=(v.maintenance||[]).find(m=>serviceStatus(v,m)!=='Prévu');
+  if(due)return {text:due.title+' · '+serviceStatus(v,due).toLowerCase(),from:'Entretien'};
+  const task=v.tasks.find(t=>!t.done);
+  if(task)return {text:task.text,from:'Tâche'};
+  return null;
+}
+function roadSummary(v){
+  const r=v.road, step=nextStep(v);
+  const head=!r?'<span class="road-state unknown">État de route à renseigner</span>':
+    r.state==='roulante'?'<span class="road-state ok">● Roulante</span>':
+    '<span class="road-state stop">● Immobilisée</span><span class="road-reason">'+esc(r.reason)+'</span>';
+  const since=r?.since?'<span class="muted">depuis le '+displayDay(r.since)+'</span>':'';
+  const action='<p class="road-next"><span class="muted">Prochaine action :</span> '+(step?esc(step.text)+(step.from?' <small class="muted">('+esc(step.from)+')</small>':''):'à préciser')+'</p>';
+  return '<div class="road" data-road-state="'+(r?.state||'inconnu')+'"><div class="road-head">'+head+since+'<button type="button" data-road="'+esc(v.id)+'">'+(r?'Changer l’état':'Renseigner l’état')+'</button></div>'+action+'</div>';
+}
+function roadDialog(id){
+  const v=db.vehicles.find(x=>x.id===id), r=v.road||{};
+  const step=nextStep({...v,road:null});
+  const choice=(value,label)=>'<label class="road-choice"><input type="radio" name="state" value="'+value+'" required '+(r.state===value?'checked':'')+'> '+label+'</label>';
+  const fields='<fieldset class="road-choices"><legend>La voiture est-elle utilisable ?</legend>'+choice('roulante','Roulante')+choice('immobilisée','Immobilisée')+'</fieldset>'+
+    '<label>Motif de l’immobilisation<input name="reason" maxlength="200" value="'+esc(r.reason)+'" placeholder="Ex. : moteur déposé, attente de pièce, CT refusé"></label>'+
+    '<label>Prochaine action<input name="next" maxlength="300" value="'+esc(r.next)+'" placeholder="'+esc(step?step.text:'Ex. : commander le joint de culasse')+'"></label>'+
+    '<small>Laisse « Prochaine action » vide pour reprendre automatiquement la panne en cours, l’entretien dû ou la première tâche.</small>';
+  const form=workflowDialog('État de route · '+v.name,fields,(next,d)=>{
+    const car=next.vehicles.find(x=>x.id===id);
+    if(!car)throw Error('Dossier véhicule introuvable.');
+    if(!['roulante','immobilisée'].includes(d.state))throw Error('Choisis « Roulante » ou « Immobilisée ».');
+    const reason=d.state==='immobilisée'?d.reason.trim():'';
+    if(d.state==='immobilisée' && !reason)throw Error('Indique le motif de l’immobilisation.');
+    const since=car.road?.state===d.state?car.road.since:todayISO();
+    car.road={state:d.state,reason,next:d.next.trim(),since};
+  });
+  const sync=()=>{const stopped=form.elements.state.value==='immobilisée';form.elements.reason.required=stopped;form.elements.reason.closest('label').style.display=stopped?'':'none'};
+  form.querySelectorAll('[name=state]').forEach(x=>x.onchange=sync);sync();
+}
 function calendarReminder(v,m){
   const escapeText=s=>String(s).replaceAll('\\','\\\\').replace(/\r\n|\r|\n/g,'\\n').replace(/[,;]/g,x=>'\\'+x);
   const summary=escapeText(v.name+' · '+m.title);
@@ -198,6 +238,7 @@ function downloadReminder(v,m){
 document.addEventListener('click',event=>{
   const b=event.target.closest('button');
   if(!b)return;
+  if(b.dataset.road){roadDialog(b.dataset.road);return}
   if(b.hasAttribute('data-add-part')||b.dataset.editPart)partDialog(current(),b.dataset.editPart);
   if(b.dataset.agenda){const v=db.vehicles.find(x=>x.id===b.dataset.vehicle);downloadReminder(v,v.maintenance.find(m=>m.id===b.dataset.agenda))}
   if(b.dataset.finish)finishService(b.dataset.vehicle,b.dataset.finish);

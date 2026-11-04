@@ -29,6 +29,11 @@ function readWorkshop(data) {
     for (const l of v.logs) check(typeof l.title === 'string' && typeof l.body === 'string' && [l.kind,l.date].every(x=>x == null || typeof x === 'string'), 'journal');
     for (const e of v.expenses) check(typeof e.title === 'string' && Number.isFinite(e.amount) && e.amount >= 0 && (e.date == null || typeof e.date === 'string'), 'dépense');
     check(v.mileage == null || validKm(v.mileage), 'kilométrage');
+    if (v.road == null) v.road = null;
+    else check(typeof v.road === 'object' && ['roulante','immobilisée'].includes(v.road.state)
+      && ['reason','next'].every(k => typeof v.road[k] === 'string')
+      && (v.road.state === 'roulante' || v.road.reason.trim())
+      && (v.road.since == null || validDate(v.road.since)), 'état de route');
     for(const part of v.parts){
       check(typeof part.name==='string' && part.name.trim(), 'nom de pièce');
       check(typeof part.oem==='string', 'référence OEM');
